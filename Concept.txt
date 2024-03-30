@@ -1,0 +1,31 @@
+Idea: Using a genetic algoerithm to optimizing drone swarm coverage.
+
+Objective: Maximing coverage of a drone swarm while minimizing energy consumption.
+
+1. Population
+
+Population of 500 random strategy vectors. Strategy vectors will be comprised of a 
+specific set of numeric values used to define the drone behavior.
+
+s = <drone positions, drone velocities, drone altitudes>
+
+drone positions: six floats from 0.0 to 5.0 m. e.g. 
+drone velocity: float from 0.0 - 1.0 m/s. 
+drone altitude: float from 0.0 - 10.0 m.
+
+2. Fitness Function
+
+Run "simulation", summing up the coverages of the drones every second until energy runs out. 
+The rate coverages will increase and the rate at which energy decreases is dependent on the strategy
+vector.
+There will be 3 drones in every simulation.
+
+3. Selection Method
+
+Rank the generation in order of best strategy (highest fitness scores from the function)
+
+4. Breeding Process
+
+Breed the best strategy vectors (cross breed traits) and randomly mutate traits - 10% probability
+of mutation - to produce new offspring. Fill up the next generation with new, different offspring
+
