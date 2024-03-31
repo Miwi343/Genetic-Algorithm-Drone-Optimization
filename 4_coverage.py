@@ -1,9 +1,7 @@
-from mpl_toolkits import mplot3d
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 import operator
-import random
 from time import perf_counter
 import pickle
 from tqdm import tqdm
@@ -197,19 +195,15 @@ def genetic_algorithm( population, generation_count ):
         
     # Print generation results:
     for i, (strategy, score) in enumerate(sorted_dict.items()):
-        print(f"Strategy {i+1}: {format(strategy)} with score {score}")
         ranked_strategy_list.append(list(strategy))
     
     best_strategy = ranked_strategy_list[0]
     best_strategy_score = fitness[tuple(ranked_strategy_list[0])]
-        
-    end = perf_counter()
     
-    print(f"-----------------------------")
-    print(f"Generation {generation_count} average:  {generation_sum / len(population)}.")
-    print(f"Best strategy: {format(best_strategy)} with score {best_strategy_score}")
+    end = perf_counter()
     print(f"{end-start} seconds elapsed to calculate fitness.")
-    print(f"-----------------------------")
+
+    display_population( sorted_dict, generation_count, generation_sum, best_strategy, best_strategy_score)
     
     # Check if user wants to visualize best strategy
     while True:
@@ -220,6 +214,18 @@ def genetic_algorithm( population, generation_count ):
             except:
                 print(f"Invalid input. Please try again.")
             display(best_strategy, display_energy)
+            break
+        elif(temp.lower() == 'n' or temp.lower() == 'no'):
+            break
+        else:
+            print(f"Invalid input. Please try again.")
+            
+    # Check if user wants to save the current state of the population
+    while True:
+        temp = input("Do you want to save the current population? (Y/N) ")
+        if(temp.lower() == 'y' or temp.lower() == 'yes'):
+            save_population( fitness, generation_count )
+            print("Population saved successfully.")
             break
         elif(temp.lower() == 'n' or temp.lower() == 'no'):
             break
@@ -250,8 +256,43 @@ def genetic_algorithm( population, generation_count ):
     generation_count += 1
     genetic_algorithm( children_generation, generation_count)
         
+###################################################################################################
+def save_population( population, generation_count ):
+    with open('population.pkl', 'wb') as f:
+        pickle.dump(population, f)
+    with open('generation_count.pkl', 'wb') as f:
+        pickle.dump(generation_count, f)
+        
+def load_population():
+    with open('population.pkl', 'rb') as f:
+        population = pickle.load(f)
+    with open('generation_count.pkl', 'rb') as f:
+        generation_count = pickle.load(f)
+        
+    # retrieve the best strategy and generation sum from the population data
+    ranked_strategy_list = []
+    generation_sum = 0
+    for i, (strategy, score) in enumerate(population.items()):
+        ranked_strategy_list.append(list(strategy))
+        generation_sum += score
     
+    best_strategy = ranked_strategy_list[0]
+    best_strategy_score = population[tuple(ranked_strategy_list[0])]
     
+    print("Population loaded successfully: ")
+    display_population( population, generation_count, generation_sum, best_strategy, best_strategy_score)
+    return population, generation_count, generation_sum, best_strategy, best_strategy_score
+
+def display_population( population, generation_count, generation_sum, best_strategy, best_strategy_score):
+    for i, (strategy, score) in enumerate(population.items()):
+        print(f"Strategy {i+1}: {format(strategy)} with score {score}")
+        
+    print(f"-----------------------------")
+    print(f"Generation {generation_count} average:  {generation_sum / len(population)}.")
+    print(f"Best strategy: {format(best_strategy)} with score {best_strategy_score}")
+    print(f"-----------------------------")
+    
+
     
     
     
@@ -274,17 +315,28 @@ GRID_HEIGHT, GRID_WIDTH = 500, 500
 # Drone coverage radius = altitude/sqrt(3)
 
 # Format: [x1, y1, z1, θ1, v1, x2, y2, z2, θ2, v2, ...]
-population = []
-for i in range(POPULATION_SIZE):
-    strategy_entity = []
-    for j in range(NUMBER_OF_DRONES): # spherical coordinates
-        strategy_entity.append(np.random.uniform(0, 5))  # ro
-        strategy_entity.append(np.random.uniform(0, 2*math.pi))  # theta
-        strategy_entity.append(np.random.uniform(0, math.pi/2))  # phi
-        strategy_entity.append(np.random.uniform(0, 0.5))  # dro # strategy_entity.append(np.random.uniform(0, 0.1))  # dro
-        strategy_entity.append(np.random.uniform(0, math.pi/8))  # dtheta
-        strategy_entity.append(np.random.uniform(0, math.pi/32))  # dphi        # strategy_entity.append(np.random.uniform(0, 0.1)) # dphi
-    # 0 - 5 for x, y, z, 0 - 2pi for angle, 0 - 2 for velocity
-    population.append(tuple(strategy_entity))
-    
-genetic_algorithm(population, 0)
+
+# Prompt user if they want to load a previous population or start a new genetic algorithm
+while True:
+    temp = input("Do you want to load a previous population? (Y/N) ")
+    if(temp.lower() == 'y' or temp.lower() == 'yes'):
+        loaded_population, generation_count = load_population()
+        print("Starting genetic algorithm with loaded population. \n \n \n")
+        genetic_algorithm(loaded_population, generation_count)
+        break
+    elif(temp.lower() == 'n' or temp.lower() == 'no'):
+        initial_population = []
+        for i in range(POPULATION_SIZE):
+            strategy_entity = []
+            for j in range(NUMBER_OF_DRONES): # spherical coordinates
+                strategy_entity.append(np.random.uniform(0, 5))  # ro
+                strategy_entity.append(np.random.uniform(0, 2*math.pi))  # theta
+                strategy_entity.append(np.random.uniform(0, math.pi/2))  # phi
+                strategy_entity.append(np.random.uniform(0, 0.5))  # dro # strategy_entity.append(np.random.uniform(0, 0.1))  # dro
+                strategy_entity.append(np.random.uniform(0, math.pi/8))  # dtheta
+                strategy_entity.append(np.random.uniform(0, math.pi/32))  # dphi        # strategy_entity.append(np.random.uniform(0, 0.1)) # dphi
+            # 0 - 5 for x, y, z, 0 - 2pi for angle, 0 - 2 for velocity
+            initial_population.append(tuple(strategy_entity))
+        genetic_algorithm(initial_population, 0)
+        break
+        
