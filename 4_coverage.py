@@ -118,8 +118,8 @@ def mutate( child ):
         #     drone[3] += np.random.uniform(-0.1, 0.1)    # deviate dro
         if np.random.random() < MUTATION_RATE:          
             drone[4] += np.random.uniform(-0.1, 0.1)    # deviate dtheta
-        # if np.random.random() < MUTATION_RATE:
-        #     drone[5] += np.random.uniform(-0.1, 0.1)    # deviate dphi
+        if np.random.random() < MUTATION_RATE:
+            drone[5] += np.random.uniform(-0.1, 0.1)    # deviate dphi
                 
     return child
 
@@ -141,7 +141,6 @@ def display(strategy, input_energy_level):
     t = 0
     while energy > 0:
         t = t + 1
-        drone = drones[i]
         
         ax.clear()
         ax.set_title(f"Energy: {energy}") 
@@ -151,8 +150,8 @@ def display(strategy, input_energy_level):
         
         # move drones
         for i in range(len(drones)):
-            # input(f"Drone {i+1} is at {drone} and moving {drone_moving}.")
-                
+            drone = drones[i]
+
             # change position of spherical coordinate
             drone[0] += drone[3] # ro = ro + dro
             drone[1] += drone[4] # theta = theta + dtheta
@@ -161,9 +160,7 @@ def display(strategy, input_energy_level):
             ax.scatter( *polar_to_rectangular(drone[:3]), color='blue')  # Plot using only position information
             plt.draw()
             plt.pause(0.05)
-            
-            # input(f"Drone {i+1} is now at {drone}.")
-            
+                        
             # update energy based on movement
             ds = math.sqrt(drone[3]**2 + (drone[0]**2)*(drone[4]**2) + (drone[0]**2)*(math.sin(drone[1]))**2*(drone[5]**2))
             energy -= ds
@@ -332,7 +329,8 @@ while True:
                 strategy_entity.append(np.random.uniform(0, 5))  # ro
                 strategy_entity.append(np.random.uniform(0, 2*math.pi))  # theta
                 strategy_entity.append(np.random.uniform(0, math.pi/2))  # phi
-                strategy_entity.append(np.random.uniform(0, 0.5))  # dro # strategy_entity.append(np.random.uniform(0, 0.1))  # dro
+                # strategy_entity.append(np.random.uniform(0, 0.5))  # dro # strategy_entity.append(np.random.uniform(0, 0.1))  # dro
+                strategy_entity.append(0)  # dro # strategy_entity.append(np.random.uniform(0, 0.1))  # dro
                 strategy_entity.append(np.random.uniform(0, math.pi/8))  # dtheta
                 strategy_entity.append(np.random.uniform(0, math.pi/32))  # dphi        # strategy_entity.append(np.random.uniform(0, 0.1)) # dphi
             # 0 - 5 for x, y, z, 0 - 2pi for angle, 0 - 2 for velocity
