@@ -23,36 +23,28 @@ def format(strategy):
 
 ###################################################################################################
 def update_coverage(drones, coverage_grid, grid_scale=5):
-    """
-    Updates the coverage grid based on the position and coverage radius of each drone.
+    grid_height, grid_width = coverage_grid.shape
+    x_indices, y_indices = np.indices((grid_height, grid_width))
     
-    :param drones: List of drones, each represented by its polar coordinates and movements.
-    :param coverage_grid: 2D NumPy array representing the coverage grid.
-    :param grid_scale: The scale of the grid (how much physical space one grid unit represents).
-    """
-    grid_size = coverage_grid.shape  # Assuming coverage_grid is a NumPy array
+    # Scale indices according to the grid_scale to match physical space
+    x_indices = x_indices * grid_scale / grid_width
+    y_indices = y_indices * grid_scale / grid_height
+    
     for drone in drones:
         drone_x, drone_y, drone_z = polar_to_rectangular(drone[:3])
         radius = drone_z / math.sqrt(3)  # Coverage radius in the same units as drone_x and drone_y
         
-        # Convert drone coordinates and radius to grid indices
-        drone_grid_x = int((drone_x / grid_scale) * grid_size[0])
-        drone_grid_y = int((drone_y / grid_scale) * grid_size[1])
-        radius_in_grid_units = int((radius / grid_scale) * grid_size[0])  # Assuming square cells and uniform scaling
+        # Calculate squared distances to avoid sqrt for performance
+        distances_squared = (x_indices - drone_x) ** 2 + (y_indices - drone_y) ** 2
+        radius_squared = radius ** 2
         
-        # Calculate the bounds of the drone's coverage area
-        x_min = max(0, drone_grid_x - radius_in_grid_units)
-        x_max = min(grid_size[0], drone_grid_x + radius_in_grid_units + 1)
-        y_min = max(0, drone_grid_y - radius_in_grid_units)
-        y_max = min(grid_size[1], drone_grid_y + radius_in_grid_units + 1)
+        # Create a mask where distances_squared is less than or equal to radius_squared
+        coverage_mask = distances_squared <= radius_squared
         
-        # Iterate only within the bounds of the coverage area
-        for x in range(x_min, x_max):
-            for y in range(y_min, y_max):
-                # Check if the cell is within the grid's bounds
-                if 0 <= x < grid_size[0] and 0 <= y < grid_size[1]:
-                    # Update the coverage grid with a decreasing factor for each additional coverage
-                    coverage_grid[x, y] += 1 / (coverage_grid[x, y] * drone_z)
+        # Use the mask to update the coverage_grid efficiently
+        # Adjust this update rule as per your specific logic for updating the grid
+        # For example, adding 1 to covered cells or some function of drone_z
+        coverage_grid[coverage_mask] += 1 / (coverage_grid[coverage_mask] * drone_z)
     
     return coverage_grid
 
