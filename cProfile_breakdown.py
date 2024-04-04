@@ -244,7 +244,7 @@ def genetic_algorithm( population, generation_count ):
     children_generation = list(children_generation)
     
     generation_count += 1
-    genetic_algorithm( children_generation, generation_count)
+    # genetic_algorithm( children_generation, generation_count)
         
 ###################################################################################################
 def save_population( population, generation_count ):
@@ -328,6 +328,6 @@ while True:
                 strategy_entity.append(np.random.uniform(0, math.pi/32))  # dphi        # strategy_entity.append(np.random.uniform(0, 0.1)) # dphi
             # 0 - 5 for x, y, z, 0 - 2pi for angle, 0 - 2 for velocity
             initial_population.append(tuple(strategy_entity))
-        genetic_algorithm(initial_population, 0)
+        cProfile.run('genetic_algorithm(initial_population, 0)')
         break
         
